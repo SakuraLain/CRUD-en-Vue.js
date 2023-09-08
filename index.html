@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CRUD de películas</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+</head>
+<body>
+  <div id="app" class="container mt-5">
+    <h1 class="text-center">CRUD de películas</h1>
+    
+    <!-- Botón para agregar una película -->
+    <button class="btn btn-primary mb-3" @click="showModal('add')">Agregar película</button>
+    
+    <!-- Tabla para mostrar las películas -->
+    <table class="table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Imagen</th>
+          <th>Título</th>
+          <th>Descripción</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="(movie, index) in movies" :key="index">
+          <td>{{ index + 1 }}</td>
+          <td><img :src="movie.image" class="img-thumbnail" width="60px" height="60px"></td>
+          <td>{{ movie.title }}</td>
+          <td>{{ movie.description }}</td>
+          <td>
+            <button class="btn btn-sm btn-info" @click="showModal('edit', index)">Editar</button>
+            <button class="btn btn-sm btn-danger" @click="deleteMovie(index)">Eliminar</button>
+            <button class="btn btn-sm btn-primary" @click="showMovieInfo(movie)">Mostrar información</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    
+    <!-- Modal para editar/crear películas -->
+    <div class="modal" :class="{ 'd-block': showModalFlag }">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">{{ modalTitle }}</h5>
+            <button type="button" class="close" @click="closeModal">&times;</button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label>Imagen:</label>
+              <input type="text" class="form-control" v-model="selectedMovie.image">
+            </div>
+            <div class="form-group">
+              <label>Título:</label>
+              <input type="text" class="form-control" v-model="selectedMovie.title">
+            </div>
+            <div class="form-group">
+              <label>Descripción:</label>
+              <textarea class="form-control" v-model="selectedMovie.description"></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-primary" @click="saveMovie">Guardar</button>
+            <button class="btn btn-secondary" @click="closeModal">Cancelar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal para mostrar información de la película -->
+    <div class="modal" :class="{ 'd-block': showMovieInfoFlag }">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Información de la película</h5>
+            <button type="button" class="close" @click="closeMovieInfo">&times;</button>
+          </div>
+          <div class="modal-body">
+              <div class="form-group">
+                <label>Imagen:</label>
+                <img :src="selectedMovieInfo.image" class="img-thumbnail" width="100px" height="100px">
+              </div>
+              <div class="form-group">
+                <label>Título:</label>
+                <input type="text" class="form-control" v-model="selectedMovieInfo.title" disabled>
+              </div>
+              <div class="form-group">
+                <label>Descripción:</label>
+                <textarea class="form-control" v-model="selectedMovieInfo.description" disabled></textarea>
+              </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" @click="closeMovieInfo">Cerrar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.6.11/dist/vue.min.js"></script>
+  <script>
+    new Vue({
+      el: '#app',
+      data: {
+        movies: [
+          { image: 'https://c8.alamy.com/compes/pwhdkr/titanic-1997-dirigida-por-james-cameron-y-protagonizada-por-leonardo-dicaprio-kate-winslet-billy-zane-y-bill-paxton-celeberrimo-romance-ubicado-a-bordo-del-malogrado-titanic-en-su-viaje-inaugural-pwhdkr.jpg', title: 'Titanic', description: 'Una película de amor y tragedia' },
+          { image: 'https://i.etsystatic.com/27725708/r/il/8a19d3/2859249018/il_570xN.2859249018_gkj1.jpg', title: 'El Padrino', description: 'Un clásico del cine de mafiosos' },
+          { image: 'https://i0.wp.com/codigoespagueti.com/wp-content/uploads/2017/12/star-wars-11.jpg?resize=640%2C900&quality=80&ssl=1', title: 'Star Wars', description: 'Una saga de ciencia ficción épica' }
+        ],
+        showModalFlag: false,
+        modalTitle: '',
+        selectedMovie: { image: '', title: '', description: '' },
+        showMovieInfoFlag: false,
+        selectedMovieInfo: { image: '', title: '', description: '' }
+      },
+      methods: {
+        showModal(action, index = null) {
+          if (action === 'add') {
+            this.modalTitle = 'Agregar película';
+            this.selectedMovie = { image: '', title: '', description: '' };
+          } else if (action === 'edit') {
+            this.modalTitle = 'Editar película';
+            this.selectedMovie = { ...this.movies[index] };
+            this.selectedMovieIndex = index;
+          }
+          this.showModalFlag = true;
+        },
+        closeModal() {
+          this.showModalFlag = false;
+        },
+        saveMovie() {
+          if (this.modalTitle === 'Agregar película') {
+            this.movies.push(this.selectedMovie);
+          } else if (this.modalTitle === 'Editar película') {
+            this.movies[this.selectedMovieIndex] = { ...this.selectedMovie };
+          }
+          this.showModalFlag = false;
+        },
+        deleteMovie(index) {
+          this.movies.splice(index, 1);
+        },
+        showMovieInfo(movie) {
+          this.selectedMovieInfo = { ...movie };
+          this.showMovieInfoFlag = true;
+        },
+        closeMovieInfo() {
+          this.showMovieInfoFlag = false;
+        }
+      }
+    });
+  </script>
+</body>
+</html>
